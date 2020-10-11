@@ -1,6 +1,6 @@
 ---
-title: "Replication of empirical findings 2 by Cheema (2014, Journal of Modern Applied Statistical Methods)"
-author: "Jehanzeb R. Cheema (jcheema1@masonlive.gmu.edu)"
+title: "Replication of `empirical sample 1' by Cheema (2014, Journal of Modern Applied Statistical Methods)"
+author: "Radhika Kapoor (rkap786@stanford.edu)"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
   html_document:
@@ -17,30 +17,40 @@ output:
 ## Introduction
 
 ### Project proposal 
-(1) Reproduce empirical findings  from Cheema 2014 as applied to PISA 2003; and 
-(2) Replicate the findings for another education dataset (PISA 2006)
+
+Cheema (2014) evaluates different treatment methods for missing data in surveys by comparing their effect on the accuracy of estimation. The paper conducts the analysis on:
+
+  (1) Simulated dataset (n=10,000 cases) 
+  
+  (2) Empirican sample 1: US portion of PISA 2003 (n=456 cases)
+
+  (3) Empirical sample 2: Population and Housing portion of US Census (2000)
+
+
+In this project, I propose to work on Empirical sample 1 (US portion of the PISA 2003 dataset) to:
+
+(1) Reproduce empirical findings  from Cheema 2014 as applied to the US dataset from PISA 2003; and 
+
+(2) Replicate the findings for another education dataset (US dataset from PISA 2006)
 
 #### Justification
 
-Cheema (2014) evaluates different treatment methods for missing data in survey data and provides their effect on accuracy of estimation. The paper conducts the analysis on 
-  (1) simulated dataset (n=10,000 cases) 
-  (2) real-world empirical samples: (a) US portion of PISA 2003 (n=456 cases);(b)        Population and Housing portion of US Census (2000)
-
-I plan to replicate 2(a). This paper is relevant to my research interests as I plan to work on large datasets, and by replicating the results, I'd learn how to handle missing data in future work. It'd also give me an opportunity to work with large-scale assessment datasets that I want to work on in the future. 
+This paper is relevant to my research interests as I plan to work on large education datasets in the context of international assessments. By replicating the results, I would learn some methods for handling missing data in my future work. This paper is also highly cited in context of handing missing data, but it hasn't been replicated to my knowledge. This project would also give me an opportunity to work with large-scale assessment datasets like PISA and understand their underlying structure. I am interested in working in international assessments so this would be valuable learning for me. 
 
 
 #### Procedure for replication
-For the replication, I would have to access the PISA datasets, understand their structure and apply the methods described in the paper: listwise deletion, mean imputation, regression imputation, EM imputation and Multiple imputation. 
+For the replication, I would have to access the PISA datasets, understand their structure and apply the methods described in the paper: listwise deletion, mean imputation, regression imputation, EM imputation and Multiple imputation. The PISA 2003 dataset used in the paper is available on the NCES website [here](https://nces.ed.gov/pubsearch/pubsinfo.asp?pubid=2007048). The dataset I propose to use for the replication (PISA 2006 dataset restricted to the US) is available [here](https://nces.ed.gov/pubsearch/getpubcats.asp?sid=098). 
 
-The challenges in the project would be: (1) accessing PISA datasets by country - they're supposed to be available online, I need to confirm the datasets have all the required variables. If PISA is not available, I have access to the Annual Survey of Education Report (ASER) 2011 data that I could use, but the underlying structure of the data is different from PISA, so it would not be an exact replication (2) Figuring out how to code the methods used in the paper
+The challenges in the project would be: (1) Confirming that the online PISA databases have all the variables needed for replication. If this data is not available, I have access to the Annual Survey of Education Report (ASER) 2011 data that I could use, but the underlying structure of the data is different from PISA, so it would not be an exact replication (2) Figuring out how to code the methods used in the paper
 
 #### Links
 Link to the repo [here](https://github.com/psych251/cheema2014)
+
 Link to the original paper [here](https://github.com/psych251/cheema2014/tree/master/original_paper)
 
 
 
-
+## PROJECT TEMPLATE 
 [No abstract is needed.]  Each replication project will have a straightforward, no frills report of the study and results.  These reports will be publicly available as supplementary material for the aggregate report(s) of the project as a whole.  Also, to maximize project integrity, the intro and methods will be written and critiqued in advance of data collection.  Introductions can be just 1-2 paragraphs clarifying the main idea of the original study, the target finding for replication, and any other essential information.  It will NOT have a literature review -- that is in the original publication. You can write both the introduction and the methods in past tense.  
 
 
