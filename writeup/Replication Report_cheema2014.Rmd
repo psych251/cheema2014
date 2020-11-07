@@ -10,111 +10,316 @@ output:
       collapsed: false
 ---
 
-<!-- Replication reports should all use this template to standardize reporting across projects.  These reports will be public supplementary materials that accompany the summary report(s) of the aggregate results. -->
+<!-- Reproducibility reports should all use this template to standardize reporting across projects. These reports will be public supplementary materials that accompany the summary report(s) of the aggregate results. -->
 
 ## Cheema 2014
 
+****************************************************************
+## Project progress
+
+### Status of the project
+
+I have completed the following parts of the project:
+
+1. Imported the data into R
+
+2. Prepared data for analysis: this included keeping required variables, dropping outliers/missing variables and standardizing variables. This was done to correspond to the analysis described in the paper
+
+3. Randomly dropped 5% and 10% of the dependent variable for the analysis
+
+4. Tried 2 of the 5 imputation methods for the 5% sample
+
+
+I have to the following left to do:
+
+1. Complete the 3 remaining imputation methods (regression imputation, EM imputation, multiple imputation)
+2. Merge the results from the regression models in one table
+3. Compare the results against Cheema (2014)
+
+
+### Issues I've run into so far
+The regression results don't match the results in the paper fully. Even though I have the exact same number of observations, the following variables don't fully match:
+
+1. As anticipated, the mean math and reading achievement doesn't fully match the mean achievement variables I have calculated. This doesn't seem that different though, going by the results
+
+2. The regression results for one indepdendent variable (home education resources) doesn't match the results in the paper. I've double-checked that I've picked the right variable, dropped the outlier (999) and normalized it as done in the paper. At this point, I am not sure why this variable is behaving differently than in the paper
+
+
+I would appreciate feedback on:
+
+1. Whether my coding so far is following Tidyverse, and if not, where to improve it
+
+2. Whether my coding could have been simpler e.g. I am not sure if I wrote really long code for something that could have been done more simply
+
+3. Whether my coding is easy to read and follow
+
+****************************************************************
+
 ## Introduction
 
-### Project proposal 
+Cheema (2014) evaluates different treatment methods for missing data in surveys by comparing their effect on the accuracy of estimation. The paper conducts the analysis on: (1) Simulated dataset (n=10,000 cases) (2) Empirican sample 1: US portion of PISA 2003 (n=456 cases) (3) Empirical sample 2: Population and Housing portion of US Census (2000). The paper looks at the effect of the different methods if sample size is small, medium or large, and if 5% and 10% of data is missing.
 
-Cheema (2014) evaluates different treatment methods for missing data in surveys by comparing their effect on the accuracy of estimation. The paper conducts the analysis on:
-
-  (1) Simulated dataset (n=10,000 cases) 
-  
-  (2) Empirican sample 1: US portion of PISA 2003 (n=456 cases)
-
-  (3) Empirical sample 2: Population and Housing portion of US Census (2000)
+In this project, I propose to reproduce Cheema 2014's findings from the US portion of the PISA 2003 dataset (Empirical sample 1) with 5% missing data using five different imputation methods - Listwise deletion, Mean imputation, Regression imputation, EM impuation, and Multiple imputation . These are the results in Table 2. 
 
 
-In this project, I propose to work on Empirical sample 1 (US portion of the PISA 2003 dataset) to:
 
-(1) Reproduce empirical findings  from Cheema 2014 as applied to the US dataset from PISA 2003; and 
-
-(2) Replicate the findings for another education dataset (US dataset from PISA 2006)
-
-#### Justification
-
-This paper is relevant to my research interests as I plan to work on large education datasets in the context of international assessments. By replicating the results, I would learn some methods for handling missing data in my future work. This paper is also highly cited in context of handing missing data, but it hasn't been replicated to my knowledge. This project would also give me an opportunity to work with large-scale assessment datasets like PISA and understand their underlying structure. I am interested in working in international assessments so this would be valuable learning for me. 
+### Justification for choice of study
+This paper is highly cited in context of handing missing data, but it hasn't been replicated to my knowledge. This project would also give me an opportunity to work with large-scale assessment datasets like PISA and understand their underlying structure. This paper is relevant to my research interests as I plan to work on large education datasets in the context of international assessments. By replicating the results, I would learn some methods for handling missing data in my future work. 
 
 
-#### Procedure for replication
-For the replication, I would have to access the PISA datasets, understand their structure and apply the methods described in the paper: listwise deletion, mean imputation, regression imputation, EM imputation and Multiple imputation. The PISA 2003 dataset used in the paper is available on the NCES website [here](https://nces.ed.gov/pubsearch/pubsinfo.asp?pubid=2007048). The dataset I propose to use for the replication (PISA 2006 dataset restricted to the US) is available [here](https://nces.ed.gov/pubsearch/getpubcats.asp?sid=098). 
+### Anticipated challenges
 
-The challenges in the project would be: (1) Confirming that the online PISA databases have all the variables needed for replication. If this data is not available, I have access to the Annual Survey of Education Report (ASER) 2011 data that I could use, but the underlying structure of the data is different from PISA, so it would not be an exact replication (2) Figuring out how to code the methods used in the paper
+Do you anticipate running into any challenges when attempting to reproduce these result(s)? If so please, list them here.
 
-#### Links
+*1. Student achievement variables used in Cheema (2014)*
+
+Cheema (2014) conducts student level imputations for PISA (2003). The dependent variable is Math achievement, and the reading achievement is one of the explanatory variables. The paper mentions that both the achievement variables vary between 200 and 800.
+
+However, PISA reports 5 plausible values for Math and Reading for each student, and advises that student level plausible values should not be averaged. It suggests that any estimation should be conducted for each of the plausible values, and the resultant estimates should be averaged. Each of these plausible values have a minimum in the range of 141-189, lower than the minimum reported by Cheema. Given the PISA dataset I have downloaded has the same number of observations as reported by Cheema, it is possible that the paper averaged the 5 plausible values. I will be able to determine this once I do the imputation. 
+
+To address this, I plan to: (1) First, imputation using average plausible values to see if Cheema (2014) can be replicated (2) If results are not replicated, conduct estimation using each plausible value and then take the average
+
+
+*2. Figuring out how to code the methods used in the paper*
+
+Cheema (2014) first performs imputation for a simulated dataset, and then for PISA. In the simulated dataset, 5% of the dataset is randomly dropped 5 times, so that there is no dependencies. However, the PISA section does not describe the values being dropped 5 times. To address this, I plan to drop 5% of data only once; if this is not sufficient to regenerate the sample, I can drop values 5 times, perform the imputation and run the regression, and then average the results
+
+
+### Links
+
 Link to the repo [here](https://github.com/psych251/cheema2014)
 
 Link to the original paper [here](https://github.com/psych251/cheema2014/tree/master/original_paper)
-
-
-
-## PROJECT TEMPLATE 
-[No abstract is needed.]  Each replication project will have a straightforward, no frills report of the study and results.  These reports will be publicly available as supplementary material for the aggregate report(s) of the project as a whole.  Also, to maximize project integrity, the intro and methods will be written and critiqued in advance of data collection.  Introductions can be just 1-2 paragraphs clarifying the main idea of the original study, the target finding for replication, and any other essential information.  It will NOT have a literature review -- that is in the original publication. You can write both the introduction and the methods in past tense.  
-
+ 
 
 ## Methods
 
-### Power Analysis
+### Description of the steps required to reproduce the results
 
-Original effect size, power analysis for samples to achieve 80%, 90%, 95% power to detect that effect size.  Considerations of feasibility for selecting planned sample size.
+PISA (2003) dataset for the US was downloaded from the NCES website. SPSS macros provided on the NCES were run to make the data ready for analysis, and the relevant variables were retained (student achievement for math and reading, student gender, home education resources and math anxiety). 
 
-### Planned Sample
+For analysis, math achievement was predicted using the other variables using a linear multiple regression equation. 5% of the data was randomly discarded. Each of the 5 imputation methods were applied to each of the reduced datasets, and then the multiple analysis was conducted:Listwise deletion, Mean imputation, Regression imputation, EM impuation, and Multiple imputation. 
 
-Planned sample size and/or termination rule, sampling frame, known demographics if any, preselection rules if any.
+### Differences from original study
 
-### Materials
+Explicitly describe known differences in the analysis pipeline between the original paper and yours (e.g., computing environment). The goal, of course, is to minimize those differences, but differences may occur. Also, note whether such differences are anticipated to influence your ability to reproduce the original results.
 
-All materials - can quote directly from original article - just put the text in quotations and note that this was followed precisely.  Or, quote directly and just point out exceptions to what was described in the original article.
-
-### Procedure	
-
-Can quote directly from original article - just put the text in quotations and note that this was followed precisely.  Or, quote directly and just point out exceptions to what was described in the original article.
-
-### Analysis Plan
-
-Can also quote directly, though it is less often spelled out effectively for an analysis strategy section.  The key is to report an analysis strategy that is as close to the original - data cleaning rules, data exclusion rules, covariates, etc. - as possible.  
-
-**Clarify key analysis of interest here**  You can also pre-specify additional analyses you plan to do.
-
-### Differences from Original Study
-
-Explicitly describe known differences in sample, setting, procedure, and analysis plan from original study.  The goal, of course, is to minimize those differences, but differences will inevitably occur.  Also, note whether such differences are anticipated to make a difference based on claims in the original article or subsequent published research on the conditions for obtaining the effect.
-
-### Methods Addendum (Post Data Collection)
-
-You can comment this section out prior to final report with data collection.
-
-#### Actual Sample
-  Sample size, demographics, data exclusions based on rules spelled out in analysis plan
-
-#### Differences from pre-data collection methods plan
-  Any differences from what was described as the original plan, or “none”.
-
-
-##Results
-
+## Results
 
 ### Data preparation
 
-Data preparation following the analysis plan.
-	
-```{r include=F}
-###Data Preparation
+```{r}
 
-####Load Relevant Libraries and Functions
+#### Load Relevant Libraries and Functions
+library(tidyr)
+library(dplyr)
+library(stringr) 
+library(ggplot2)
+library(readr)
 
-####Import data
+install.packages("mice")  #package for regression imputation
+library("mice") 
 
-#### Data exclusion / filtering
+
+#### Import data
+url <- '/Users/radhika/Documents/Stanford readings/251 Experimental methods/Project/cheema2014/PISA data/Extracted data/PISA 2003 Student Background.csv'
+pisa <-read.csv(url)
+
+
+           
+# Variables selected are: IDs, gender, math anxiety, household, education resources, plausible values for math and reading
 
 #### Prepare data for analysis - create columns etc.
+####Calculate mean
+pisa = pisa %>% 
+   rowwise() %>% 
+  mutate(math_achievement = mean(c(PV1MATH, PV2MATH, PV3MATH, PV4MATH, PV5MATH))) %>%  
+  mutate(read_achievement=mean(c(PV1READ, PV2READ, PV3READ, PV4READ, PV5READ)))
+  
+
+#### Data exclusion / filtering
+pisa = pisa %>% 
+  rename(student_gender = ST03Q01, studentID=STIDSTD) %>% 
+  select(c("studentID", "SCHOOLID", "student_gender","ANXMAT", "HEDRES", "math_achievement", "read_achievement"))
+         
+
+
+head(pisa)
+nrow(pisa)
+colnames(pisa)
+summary(pisa)
+
+#Paper says math and reading scores are normally distributed - plotting to check
+ggplot(pisa, aes(x=math_achievement)) + geom_histogram() 
+ggplot(pisa, aes(x=read_achievement)) + geom_histogram() 
+
+
+#Check for outliers in variables of interest
+colnames(pisa)
+unique(pisa$student_gender)
+unique(pisa$HEDRES)
+
+#Check outliers in math anxiety
+ggplot(pisa, aes(x=ANXMAT)) + geom_histogram() 
+
+
+#Student gender, Math anxiety seems to have outliers - checking to see all possible values in it
+
+mean_anxmat <- mean(pisa_filter$ANXMAT, na.rm=T)
+sd_anxmat <- sd(pisa_filter$ANXMAT, na.rm=T)
+mean_hedres <- mean(pisa_filter$HEDRES, na.rm=T)
+sd_hedres <- sd(pisa_filter$HEDRES, na.rm=T)
+
+
+
+pisa_filter=pisa %>%
+     mutate(ANXMAT=replace(ANXMAT, ANXMAT>=999, NA)) %>%
+    mutate(HEDRES=replace(HEDRES, HEDRES>=999, NA)) %>%
+    filter(student_gender<3,
+    !is.na(student_gender)) %>%
+  mutate(stdANXMAT= (ANXMAT-mean_anxmat)/sd_anxmat) %>%
+mutate(stdHEDRES= (HEDRES-mean_hedres)/sd_hedres)
+
 ```
 
-### Confirmatory analysis
+
+#####I tried to use the code below but it didn't work
+
+    pisa_filter=pisa %>%
+    
+     mutate(ANXMAT=replace(ANXMAT, ANXMAT>=999, NA)) %>%
+     
+    filter(is.na(ANXMAT)==1)  %>%
+    
+    mutate(sdANXMAT=scale(ANXMAT))
+
+
+### Key analysis
 
 The analyses as specified in the analysis plan.  
+
+
+##Reduce sample size for analysis
+Cheema (2014) describes the process as under:
+
+Each of these sub-samples was then reduced in size by 1%, 2%, 5%, 10%, and 20% in order to simulate datasets containing missing data. The cases were discarded randomly from each complete sample five times separately in order to make sure that there were no dependencies
+between samples. 
+
+
+```{r}
+#Drop 5% of the PISA data
+
+
+set.seed(123)
+pisa_filter <- pisa_filter %>%
+  mutate(rv = rnorm(n())) %>%
+  arrange(rv) 
+
+cutoff_5per <-5183 #Cheema (2014) rounded off 95% of 5455 obs as 5182, preserving that 
+cutoff_10per <-4911 #Cheema (2014) rounded off 90% of 5455 obs as 4910
+
+pisa_5persample <- sample_frac(pisa_filter, 0.95)
+
+pisa_5persample <- pisa_filter %>% 
+  tibble::rowid_to_column("new_rowid") %>%
+  mutate(math_achievement2= ifelse(new_rowid<(cutoff_5per),math_achievement,NA)) %>% 
+  select(-c(new_rowid)) 
+
+
+pisa_10persample <- pisa_filter %>% 
+  tibble::rowid_to_column("new_rowid") %>%
+  mutate(math_achievement2= ifelse(new_rowid<(cutoff_10per),math_achievement,NA)) %>%  
+  select(-c(new_rowid)) 
+
+
+```
+
+
+#Conduct analysis with full data
+
+```{r}
+
+summary(pisa_filter)
+lm_fulldata=lm(math_achievement ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=pisa_filter)
+summary(lm_fulldata)
+
+```
+
+
+#Imputation methods for 5% sample
+1. List wise deletion
+
+```{r}
+
+#List wise deletion is the same as not making any adjustments to the missing data
+lm_ld_5per=lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=pisa_5persample)
+summary(lm_ld_5per)
+
+```
+
+2. Mean imputation
+
+```{r}
+#Values of math_achievement2 will be replaced by the mean of the column
+
+mean_math <- mean(pisa_5persample$math_achievement2, na.rm = T) #calculate mean score to be used for imputation
+mean_math
+
+pisa_5persample <- pisa_5persample %>%
+  rowwise() %>%
+  mutate(math_mi=ifelse(is.na(math_achievement2),mean_math,math_achievement2)) 
+
+  
+rm(mean_math)
+
+#Run the regression using the imputed mean
+lm_mi_5per=lm(math_mi ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=pisa_5persample)
+summary(lm_mi_5per)
+
+colnames(pisa_5persample)
+
+  ```
+
+```
+
+
+
+3. Regression imputation
+```{r}
+md.pattern(pisa_5persample)
+
+imp <- mice(pisa_5persample, method = "norm.nob", m = 5) # Impute data
+
+install.packages('simputation', dependencies=TRUE)
+library(simputation)
+  
+
+
+pisa_5persample_rm = pisa_5persample %>%
+  rowwise() %>%
+  filter(is.na(math_achievement2))
+summary(pisa_5persample_rm)
+
+math_ri_5per <- lm(pisa_5persample, math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement)
+
+
+math_ri_5per <- lm(pisa_5persample, math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement)
+summary(math_ri_5per)
+
+lm_ri_5per <- lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=math_ri_5per)
+summary(lm_ri_5per)
+
+```
+
+
+```{r}
+#Multiple imputation
+
+imp <- mice(pisa_10persample, m=5, maxit=10, printFlag = FALSE)
+
+```
+
+
 
 *Side-by-side graph with original graph is ideal here*
 
@@ -124,10 +329,10 @@ Any follow-up analyses desired (not required).
 
 ## Discussion
 
-### Summary of Replication Attempt
+### Summary of Reproduction Attempt
 
-Open the discussion section with a paragraph summarizing the primary result from the confirmatory analysis and the assessment of whether it replicated, partially replicated, or failed to replicate the original result.  
+Open the discussion section with a paragraph summarizing the primary result from the key analysis and assess whether you successfully reproduced it, partially reproduced it, or failed to reproduce it.  
 
 ### Commentary
 
-Add open-ended commentary (if any) reflecting (a) insights from follow-up exploratory analysis, (b) assessment of the meaning of the replication (or not) - e.g., for a failure to replicate, are the differences between original and present study ones that definitely, plausibly, or are unlikely to have been moderators of the result, and (c) discussion of any objections or challenges raised by the current and original authors about the replication attempt.  None of these need to be long.
+Add open-ended commentary (if any) reflecting (a) insights from follow-up exploratory analysis of the dataset, (b) assessment of the meaning of the successful or unsuccessful reproducibility attempt - e.g., for a failure to reproduce the original findings, are the differences between original and present analyses ones that definitely, plausibly, or are unlikely to have been moderators of the result, and (c) discussion of any objections or challenges raised by the current and original authors about the reproducibility attempt (if you contacted them).  None of these need to be long.
