@@ -36,6 +36,12 @@ I have to the following left to do:
 2. Merge the results from the regression models in one table
 3. Compare the results against Cheema (2014)
 
+### Question for teaching team
+The feedback I got for my midterm presentation was to decide what would constitute replication. Replication in this case could be:
+
+(1) Comparison of beta coefficients - I can compare these by standardizing them 
+(2) Comparison of R-squared: *I am not sure of how to do this, would appreciate feedback*
+
 
 ### Issues I've run into so far
 The regression results don't match the results in the paper fully. Even though I have the exact same number of observations, the following variables don't fully match:
@@ -109,16 +115,34 @@ Explicitly describe known differences in the analysis pipeline between the origi
 ### Data preparation
 
 ```{r}
+## Load Relevant Libraries and Functions
+## Default repo
 
-#### Load Relevant Libraries and Functions
+##local({r <- getOption("repos")
+##       r["CRAN"] <- "https://cloud.r-project.org"
+##       options(repos=r)
+##})
+
+
 library(tidyr)
 library(dplyr)
 library(stringr) 
 library(ggplot2)
 library(readr)
 
-install.packages("mice")  #package for regression imputation
+#install.packages("mice")  #package for regression imputation
 library("mice") 
+#install.packages("miceadds")
+library(miceadds) 
+
+library(sandwich)
+library(mitools)
+library(texreg)
+
+#?sandwich
+#install.packages("sandwich")
+#install.packages(mitools)
+#install.packages("texreg")
 
 
 #### Import data
@@ -165,6 +189,12 @@ ggplot(pisa, aes(x=ANXMAT)) + geom_histogram()
 
 #Student gender, Math anxiety seems to have outliers - checking to see all possible values in it
 
+pisa_filter=pisa %>%
+     mutate(ANXMAT=replace(ANXMAT, ANXMAT>=999, NA)) %>%
+    mutate(HEDRES=replace(HEDRES, HEDRES>=999, NA)) %>%
+    filter(student_gender<3,
+    !is.na(student_gender))
+
 mean_anxmat <- mean(pisa_filter$ANXMAT, na.rm=T)
 sd_anxmat <- sd(pisa_filter$ANXMAT, na.rm=T)
 mean_hedres <- mean(pisa_filter$HEDRES, na.rm=T)
@@ -172,7 +202,7 @@ sd_hedres <- sd(pisa_filter$HEDRES, na.rm=T)
 
 
 
-pisa_filter=pisa %>%
+pisa_filter=pisa_filter %>%
      mutate(ANXMAT=replace(ANXMAT, ANXMAT>=999, NA)) %>%
     mutate(HEDRES=replace(HEDRES, HEDRES>=999, NA)) %>%
     filter(student_gender<3,
@@ -185,7 +215,7 @@ mutate(stdHEDRES= (HEDRES-mean_hedres)/sd_hedres)
 
 #####I tried to use the code below but it didn't work
 
-    pisa_filter=pisa %>%
+    #pisa_filter=pisa %>%
     
      mutate(ANXMAT=replace(ANXMAT, ANXMAT>=999, NA)) %>%
      
@@ -223,13 +253,15 @@ pisa_5persample <- sample_frac(pisa_filter, 0.95)
 pisa_5persample <- pisa_filter %>% 
   tibble::rowid_to_column("new_rowid") %>%
   mutate(math_achievement2= ifelse(new_rowid<(cutoff_5per),math_achievement,NA)) %>% 
-  select(-c(new_rowid)) 
+  select(-c(new_rowid)) %>%
+  select(-c(ANXMAT, HEDRES,math_achievement, rv))
 
 
 pisa_10persample <- pisa_filter %>% 
   tibble::rowid_to_column("new_rowid") %>%
   mutate(math_achievement2= ifelse(new_rowid<(cutoff_10per),math_achievement,NA)) %>%  
-  select(-c(new_rowid)) 
+  select(-c(new_rowid)) %>%
+  select(-c(ANXMAT, HEDRES,math_achievement, rv))
 
 
 ```
@@ -265,20 +297,17 @@ summary(lm_ld_5per)
 mean_math <- mean(pisa_5persample$math_achievement2, na.rm = T) #calculate mean score to be used for imputation
 mean_math
 
-pisa_5persample <- pisa_5persample %>%
+pisa_5persample_mi <- pisa_5persample %>%
   rowwise() %>%
   mutate(math_mi=ifelse(is.na(math_achievement2),mean_math,math_achievement2)) 
 
-  
-rm(mean_math)
+
 
 #Run the regression using the imputed mean
-lm_mi_5per=lm(math_mi ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=pisa_5persample)
+lm_mi_5per=lm(math_mi ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=pisa_5persample_mi)
 summary(lm_mi_5per)
 
 colnames(pisa_5persample)
-
-  ```
 
 ```
 
@@ -286,36 +315,91 @@ colnames(pisa_5persample)
 
 3. Regression imputation
 ```{r}
-md.pattern(pisa_5persample)
 
-imp <- mice(pisa_5persample, method = "norm.nob", m = 5) # Impute data
+imp <- mice(pisa_5persample, method = "norm.nob", m = 1) # Impute data
+imp2 <- complete(imp) # Store datasummary(imp2)
+summary(imp2)
 
-install.packages('simputation', dependencies=TRUE)
-library(simputation)
-  
-
-
-pisa_5persample_rm = pisa_5persample %>%
-  rowwise() %>%
-  filter(is.na(math_achievement2))
-summary(pisa_5persample_rm)
-
-math_ri_5per <- lm(pisa_5persample, math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement)
+md.pattern(imp2)
 
 
-math_ri_5per <- lm(pisa_5persample, math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement)
-summary(math_ri_5per)
-
-lm_ri_5per <- lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=math_ri_5per)
+#Run the regression using the imputed math achievement scores
+lm_ri_5per=lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=imp2)
 summary(lm_ri_5per)
+
 
 ```
 
 
 ```{r}
-#Multiple imputation
+#4. EM maximization
 
-imp <- mice(pisa_10persample, m=5, maxit=10, printFlag = FALSE)
+```
+
+
+
+
+```{r}
+#5. Multiple imputation
+md.pattern(pisa_10persample, plot = F)
+
+imp <- mice(pisa_10persample, m=5, maxit=10, meth='pmm',seed=500, printFlag = F) 
+  #mice is the package for performing multiple imputations
+      #m=5: number of multiple imputations i.e. 5 completed datasets will be generated
+      #maxit=10: number of iterations run 
+      #pmm: predictive mean matching
+
+
+summary(pisa_10persample)
+summary(imp) #we see that the missing values 
+
+
+#modelFit1 <- with(imp,lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement))
+#modelFit1 #the regression has been run for each of the imputed datasets
+#summary(pool(modelFit1)) #this pools the results from the 5 regressions
+
+
+#write function to output result
+
+#create a list from imputation - makes export easier
+implist <- miceadds::mids2datlist(imp)
+modelFit2 <- with(implist,lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement))
+summary(pool(modelFit2))
+
+#extract
+
+               
+extract.df <- function(tt, cl = NULL) {
+  require(sandwich)
+  require(mitools)
+  require(texreg)
+  m2 <- length(tt) #number of imputations
+  betas <- lapply(tt, coef)
+  vars <- lapply(tt, vcov)
+  # conduct statistical inference and save results into a data.frame
+  model1 <- summary(pool_mi(betas, vars))
+  
+  
+  R2 <- mean(sapply(1:m2, function(x) summary(tt[[x]])$r.squared))
+  #technically, should use R to Z-- but close for now when R is low
+  ns <- nobs(tt[[1]])
+  
+   #creates what is used by texreg
+  tr <- createTexreg(
+    coef.names = row.names(model1), 
+    coef = model1$results, 
+    se = model1$se, 
+    pvalues = model1$p,
+    gof.names = c("R2", "Nobs"), 
+    gof = c(R2, ns),
+    gof.decimal = c(T,F)
+  )
+}
+
+out1 <- extract.df(modelFit2)
+screenreg(out1, digits = 3)
+
+
 
 ```
 
