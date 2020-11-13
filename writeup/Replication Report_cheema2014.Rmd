@@ -206,7 +206,9 @@ pisa_filter=pisa_filter %>%
      mutate(ANXMAT=replace(ANXMAT, ANXMAT>=999, NA)) %>%
     mutate(HEDRES=replace(HEDRES, HEDRES>=999, NA)) %>%
     filter(student_gender<3,
-    !is.na(student_gender)) %>%
+    !is.na(student_gender),
+    !is.na(stdANXMAT),
+    !is.na(stdHEDRES)) %>%
   mutate(stdANXMAT= (ANXMAT-mean_anxmat)/sd_anxmat) %>%
 mutate(stdHEDRES= (HEDRES-mean_hedres)/sd_hedres)
 
@@ -239,8 +241,7 @@ between samples.
 ```{r}
 #Drop 5% of the PISA data
 
-
-set.seed(123)
+set.seed(123)                                                                                                                                                                                                                                                                                                        
 pisa_filter <- pisa_filter %>%
   mutate(rv = rnorm(n())) %>%
   arrange(rv) 
@@ -333,6 +334,33 @@ summary(lm_ri_5per)
 
 ```{r}
 #4. EM maximization
+library(norm)
+install.packages("mvdalab")
+library(mvdalab)
+??imputeEM
+
+imp = imputeEM(pisa_5persample, impute.ncomps = 1, pca.ncomps = 2, CV = TRUE, Init = "mean",
+         scale = TRUE, iters = 25, tol = .Machine$double.eps^0.25)
+summary(imp$Imputed.DataFrames)
+
+implist <- miceadds::mids2datlist(imp)
+
+modelFit2 <- with(implist,lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement))
+summary(pool(modelFit2))
+
+
+
+method4_em <- function (data) {
+
+}
+
+pre <- prelim.norm(as.matrix(pisa_5persample)) #arranges data in a matrix that can be used by the em function
+thetahat <- em.norm(pre,showits = T)
+getparam.norm(pre,thetahat)
+imp <- imp.norm(pre, thetahat, as.matrix(pisa_5persample))
+summary(imp)
+summary(pisa_5persample)
+  
 
 ```
 
