@@ -209,12 +209,23 @@ mean_hedres <- mean(pisa_filter$HEDRES, na.rm=T)
 sd_hedres <- sd(pisa_filter$HEDRES, na.rm=T)
 
 
+
 pisa_filter=pisa_filter %>%
   mutate(stdANXMAT= (ANXMAT-mean_anxmat)/sd_anxmat) %>%
 mutate(stdHEDRES= (HEDRES-mean_hedres)/sd_hedres)
 
 ```
 
+
+#####I tried to use the code below but it didn't work
+
+    #pisa_filter=pisa %>%
+    
+     mutate(ANXMAT=replace(ANXMAT, ANXMAT>=999, NA)) %>%
+     
+    filter(is.na(ANXMAT)==1)  %>%
+    
+    mutate(sdANXMAT=scale(ANXMAT))
 
 
 ### Key analysis
@@ -228,8 +239,11 @@ Cheema (2014) describes the process as under:
 Each of these sub-samples was then reduced in size by 1%, 2%, 5%, 10%, and 20% in order to simulate datasets containing missing data. The cases were discarded randomly from each complete sample five times separately in order to make sure that there were no dependencies
 between samples. 
 
-###Drop 5% and 10% of the PISA data
+
 ```{r}
+#Drop 5% and 10% of the PISA data
+
+
 set.seed(123)
 pisa_filter <- pisa_filter %>%
   mutate(rv = rnorm(n())) %>%
@@ -247,15 +261,6 @@ pisa_5persample <- pisa_filter %>%
   select(-c(new_rowid)) %>%
   select(-c(ANXMAT, HEDRES,math_achievement, rv))
 
-pisa_5persample_mod <- pisa_filter %>% 
-  tibble::rowid_to_column("new_rowid") %>%
-  mutate(math_achievement2= ifelse(new_rowid<(cutoff_5per),math_achievement,NA)) %>% 
-  select(-c(new_rowid)) %>%
-  select(-c(ANXMAT, stdHEDRES,math_achievement, rv)) %>%
-  mutate(stdHEDRES=HEDRES) %>%
-  select(-c(HEDRES)) 
-
-summary(pisa_5persample_mod)
 
 pisa_10persample <- pisa_filter %>% 
   tibble::rowid_to_column("new_rowid") %>%
@@ -263,138 +268,200 @@ pisa_10persample <- pisa_filter %>%
   select(-c(new_rowid)) %>%
   select(-c(ANXMAT, HEDRES,math_achievement, rv))
 
-pisa_10persample_mod <- pisa_filter %>% 
-  tibble::rowid_to_column("new_rowid") %>%
-  mutate(math_achievement2= ifelse(new_rowid<(cutoff_10per),math_achievement,NA)) %>% 
-  select(-c(new_rowid)) %>%
-  select(-c(ANXMAT, stdHEDRES,math_achievement, rv)) %>%
-  mutate(stdHEDRES=HEDRES) %>%
-  select(-c(HEDRES)) 
 
-summary(pisa_10persample_mod)
 ```
 
 
 #Define the missing data models to be used 
-## 0. True model
-
+##
 ```{r}
-
-model0_full = function(data){
-lm_fulldata=lm(math_achievement ~ student_gender + HEDRES + stdANXMAT + read_achievement, data=data)
+model1_full = function(data){
+lm_fulldata=lm(math_achievement ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=data)
 return(lm_fulldata)
 }  
 
 ```
 
-## 1. Imputation method: List wise deletion model
+
+
+
+#Running the analysis
+
 ```{r}
+#These results are similar to the paper results
+model1_full = function(data){
+lm_fulldata=lm(math_achievement ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=data)
+return(lm_fulldata)
+}  
 
-model1_deletion = function(data){
-data = data %>%
-  filter(!is.na(math_achievement2))
-  
-lm_ld=lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=data)
+summary(pisa_filter)
+lm_fulldata=lm(math_achievement ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=pisa_filter)
+summary(lm_fulldata)
 
-return(lm_ld)
-}
+
+
 
 ```
 
-## 2. Imputation method: Mean imputation
+
+#Imputation methods for 5% sample
+1. List wise deletion
+
 ```{r}
-model2_mean_imp = function(data){
 
-mean_math <- mean(data$math_achievement2, na.rm = T) #calculate mean score to be used for imputation
+#List wise deletion is the same as not making any adjustments to the missing data
+lm_ld_5per=lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=pisa_5persample)
+summary(lm_ld_5per)
 
-mean_anxmat <- mean(data$stdANXMAT, na.rm = T)
-mean_hedres <- mean(data$stdHEDRES, na.rm = T)
+lm_ld_10per=lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=pisa_10persample)
+summary(lm_ld_10per)
 
-data <- data %>%
+
+```
+
+2. Mean imputation
+
+```{r}
+#Values of math_achievement2 will be replaced by the mean of the column
+
+##5% data
+mean_math <- mean(pisa_5persample$math_achievement2, na.rm = T) #calculate mean score to be used for imputation
+
+pisa_5persample_mi <- pisa_5persample %>%
   rowwise() %>%
-  mutate(math_achievement2=ifelse(is.na(math_achievement2),mean_math,math_achievement2)) %>%
-  mutate(stdHEDRES=ifelse(is.na(stdHEDRES),mean_math,stdHEDRES)) %>%
-  mutate(stdANXMAT=ifelse(is.na(stdANXMAT),mean_math,stdANXMAT))
+  mutate(math_mi=ifelse(is.na(math_achievement2),mean_math,math_achievement2)) 
 
 
 #Run the regression using the imputed mean
-lm_mi=lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=data)
+lm_mi_5per=lm(math_mi ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=pisa_5persample_mi)
+summary(lm_mi_5per)
 
-return(lm_mi)
-}
+
+##10% data
+mean_math <- mean(pisa_10persample$math_achievement2, na.rm = T) #calculate mean score to be used for imputation
+
+
+pisa_10persample_mi <- pisa_10persample %>%
+  rowwise() %>%
+  mutate(math_mi=ifelse(is.na(math_achievement2),mean_math,math_achievement2)) 
+
+
+#Run the regression using the imputed mean
+lm_mi_10per=lm(math_mi ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=pisa_10persample_mi)
+summary(lm_mi_10per)
+
+
 
 ```
 
-## 3. Imputation method: Regression imputation
+
+
+
 ```{r}
-model3_reg_imp = function(data){
-imp <- mice(data, method = "norm.nob", m = 1) # Impute data, produce 1 result matrix
+#Function 3. Regression imputation
+##5% missing data
+
+#Method: using MICE functionality
+imp <- mice(pisa_5persample, method = "norm.nob", m = 1) # Impute data
     #norm.predict = regression imputation with error
     #norm.nob = regression imputation stochastic
 
-imp2 <- complete(imp) # Store datasummary - mice produces data in mids (list) format and this converts it to a single dataframe
-summary(imp2) #Missing values have been filled
+imp2 <- complete(imp) # Store datasummary(imp2)
+summary(imp2) #Missing values have been
 
-lm_ri=lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=imp2)
-return(lm_ri)
-}
+lm_ri_5per=lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=imp2)
+summary(lm_ri_5per)
+
+
+#Run the regression using the imputed math achievement scores
+##Alternate method - gives the same result
+
+##10% missing data
+imp <- mice(pisa_10persample, method = "norm.nob", m = 1) # Impute data
+    #norm.predict = regression imputation with error
+    #norm.nob = regression imputation stochastic
+imp2 <- complete(imp) # Store datasummary(imp2)
+summary(imp2)
+
+
+#Run the regression using the imputed math achievement scores
+lm_ri_10per=lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement, data=imp2)
+summary(lm_ri_10per)
+
+
+
+
+```
+
+
+```{r}
+#4. EM maximization
+
+
+
+install.packages("mvdalab")
+library(mvdalab)
+imp= imputeEM(pisa_em, impute.ncomps = 1, pca.ncomps = 1, CV = TRUE, Init = "mean",
+         scale = TRUE, iters = 25, tol = .Machine$double.eps^0.25)
+summary(imp$Imputed.DataFrames)
+
+
+
+library(norm)
+summary(pisa_5persample)
+
+pisa_em = pisa_5persample %>%
+  filter(!is.na(stdHEDRES),
+         !is.na(stdANXMAT)) %>%
+  select(-c("studentID","SCHOOLID"))
+
+summary(pisa_em)
+colnames(pisa_5persample)
+
+s <- prelim.norm(as.matrix(pisa_em))
+thetahat <- em.norm(s)
+
+getparam.norm(s,thetahat)
+
+ximp = imp.norm(s, thetahat, as.matrix(pisa_em))
+summary(ximp)
+
 ```
 
 
-## 4. Imputation method: EM imputation
- I couldn't use Expectation Maximization (EM) imputation in R to replicate the method used in SPSS. The code chunk below has the two methods I tried, neither of which look right. The first one produces estimates very different from the original model, and the second one produced missing or "inf" values. There don't seem to be any readily available packages in R that correspond to SPSS, so I decided to not reproduce this method.
- 
-```{r}
 
-### (Failed) Method 1: Use package mvdalab
-#### The package runs but I am not quite sure what it does, and the results don't correspond to the paper. My best guess is that this model is not the same as SPSS
-
-# install.packages("mvdalab")
-# library(mvdalab)
-# imp= imputeEM(pisa_5persample, impute.ncomps = 1, pca.ncomps = 1, CV = TRUE, Init = "mean",
-#          scale = TRUE, iters = 25, tol = .Machine$double.eps^0.25)
-# implist = (pool(imp$Imputed.DataFrames))
-# 
-# modelFit2 <- with(implist,lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement))
-# summary(modelFit2)
-
-
-
-### (Failed) Method 2: Use imp.norm
-  ### The code runs but the missing values are not filled and "Inf" is generated
-# library(norm)
-# summary(pisa_5persample)
-# s <- prelim.norm(as.matrix(pisa_5persample))
-# thetahat <- em.norm(s)
-# getparam.norm(s,thetahat)
-# 
-# ximp = imp.norm(s, thetahat, as.matrix(pisa_5persample))
-# summary(ximp) 
-
-```
- 
-## 5. Imputation method: Multiple imputation
 
 ```{r}
-model5_multiple_imp = function(data){
-  
-  imp <- mice(data, m=5, maxit=10, meth='pmm',seed=500, printFlag = F) 
+#5. Multiple imputation
+###5% missing data
+md.pattern(pisa_5persample, plot = F)
+
+imp <- mice(pisa_5persample, m=5, maxit=10, meth='pmm',seed=500, printFlag = F) 
   #mice is the package for performing multiple imputations
       #m=5: number of multiple imputations i.e. 5 completed datasets will be generated
       #maxit=10: number of iterations run 
       #pmm: predictive mean matching
 
+summary(pisa_5persample)
+summary(imp) #we see that the missing values 
 
+
+#modelFit1 <- with(imp,lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement))
+#modelFit1 #the regression has been run for each of the imputed datasets
+#summary(pool(modelFit1)) #this pools the results from the 5 regressions
+
+
+#write function to output result
+
+#create a list from imputation - makes export easier
 implist <- miceadds::mids2datlist(imp)
-modelFit2 <- with(implist,lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement)) #this will estimate lm model for each imputued dataset i.e. 5 lm models are estimated
-#summary(pool(modelFit2)) #pooling results from the models
-}
+modelFit2 <- with(implist,lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement))
+summary(pool(modelFit2))
 
-####I copy pasted the entire code chunk for function "extract.df" from a blog
+#extract
+
                
 extract.df <- function(tt, cl = NULL) {
-  #create a list from imputation - makes export easier
-
   require(sandwich)
   require(mitools)
   require(texreg)
@@ -421,118 +488,42 @@ extract.df <- function(tt, cl = NULL) {
   )
 }
 
-```
+out1 <- extract.df(modelFit2)
+lm_multim_5per = screenreg(out1, digits = 3)
 
 
-#Running the analysis using the functions defined above
 
-```{r}
-#These results are similar to the paper results
-##Full data analysis
-md.pattern(pisa_filter, plot = F) #check the pattern of missing data
-lm_fulldata=model0_full(pisa_filter)
+###10% missing data
+md.pattern(pisa_10persample, plot = F)
+
+imp <- mice(pisa_10persample, m=5, maxit=10, meth='pmm',seed=500, printFlag = F) 
+  #mice is the package for performing multiple imputations
+      #m=5: number of multiple imputations i.e. 5 completed datasets will be generated
+      #maxit=10: number of iterations run 
+      #pmm: predictive mean matching
 
 
-## For 5% missing data
-md.pattern(pisa_5persample, plot = F) #check the pattern of missing data
+summary(pisa_10persample)
+summary(imp) #we see that the missing values 
 
-### Using standardized HEDRES as specified in paper
-lm_ld_5per = model1_deletion(pisa_5persample) #list wise deletion
-lm_mi_5per = model2_mean_imp(pisa_5persample) #mean imputation
-lm_ri_5per = model3_reg_imp(pisa_5persample) #regression imputation
 
-multim_est_5per= model5_multiple_imp(pisa_5persample) #multiple imputation
-lm_multim_5per <- extract.df(multim_est_5per) #extract results
+#modelFit1 <- with(imp,lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement))
+#modelFit1 #the regression has been run for each of the imputed datasets
+#summary(pool(modelFit1)) #this pools the results from the 5 regressions
 
-### Using standardized HEDRES as suggested by the author
-lm_ld_5per2 = model1_deletion(pisa_5persample_mod) #list wise deletion
-lm_mi_5per2 = model2_mean_imp(pisa_5persample_mod) #mean imputation
-lm_ri_5per2 = model3_reg_imp(pisa_5persample_mod) #regression imputation
 
-multim_est_5per2=model5_multiple_imp(pisa_5persample_mod) #multiple imputation
-lm_multim_5per2= extract.df(multim_est_5per2) #extract results
+#write function to output result
 
-######################################################################
-## For 10% missing data
-md.pattern(pisa_10persample, plot = F) #check the pattern of missing data
+#create a list from imputation - makes export easier
+implist <- miceadds::mids2datlist(imp)
 
-### Using standardized HEDRES as specified in paper
-lm_ld_10per = model1_deletion(pisa_10persample) #list wise deletion
-lm_mi_10per = model2_mean_imp(pisa_10persample) #mean imputation
-lm_ri_10per = model3_reg_imp(pisa_10persample) #regression imputation
+modelFit2 <- with(implist,lm(math_achievement2 ~ student_gender + stdHEDRES + stdANXMAT + read_achievement))
+x=summary(pool(modelFit2))
 
-multim_est_10per= model5_multiple_imp(pisa_10persample) #multiple imputation
-lm_multim_10per= extract.df(multim_est_10per) #extract results
-
-### Using standardized HEDRES as suggested by the author
-lm_ld_10per2 = model1_deletion(pisa_10persample_mod) #list wise deletion
-lm_mi_10per2 = model2_mean_imp(pisa_10persample_mod) #mean imputation
-lm_ri_10per2 = model3_reg_imp(pisa_10persample_mod) #regression imputation
-
-multim_est_10per2=model5_multiple_imp(pisa_10persample_mod) #multiple imputation
-lm_multim_10per2= extract.df(multim_est_10per2) #extract results
-
+out2 <- extract.df(modelFit2)
 
 
 ```
-
-
-#Compiling the results in tables 
-## 5 % missing data
-
-```{r}
-##5% missing data 
-### Using standardized HEDRES as in paper
-
-screenreg(list(lm_fulldata, lm_ld_5per, lm_mi_5per,  lm_ri_5per, lm_multim_5per), 
-          custom.header= list("Full model"=1,"Deletion"=2, "Mean"=3, "Regression"=4, "Multiple"=5), 
-           custom.model.names = c("Model 0", "Model 1", "Model 2", "Model 3", "Model 5"),
-          custom.coef.names = c("Intercept", "Gender", "Home education resources", "Math anxiety", "Reading achievement", "Home education resources"),
-          digits=3,
-          include.fstatistic = TRUE)
-
-
-### Using normal HEDRES as suggested by author
-
-screenreg(list(lm_fulldata, lm_ld_5per2, lm_mi_5per2,  lm_ri_5per2, lm_multim_5per2), 
-          custom.header= list("Full model"=1,"Deletion"=2, "Mean"=3, "Regression"=4, "Multiple"=5), 
-           custom.model.names = c("Model 0", "Model 1", "Model 2", "Model 3", "Model 5"),
-          custom.coef.names = c("Intercept", "Gender", "Home education resources", "Math anxiety", "Reading achievement", "Home education resources"),
-          digits=3,
-          include.fstatistic = TRUE)
-
-
-
-
-
-```
-
-
-## 10% missing data
-```{r}
-
-##10% missing data
-screenreg(list(lm_fulldata, lm_ld_10per, lm_mi_10per,  lm_ri_10per, lm_multim_10per), 
-          custom.header= list("Full model"=1,"Deletion"=2, "Mean"=3, "Regression"=4, "Multiple"=5), 
-           custom.model.names = c("Model 0", "Model 1", "Model 2", "Model 3", "Model 5"),
-          custom.coef.names = c("Intercept", "Gender", "Home education resources", "Math anxiety", "Reading achievement", "Home education resources"),
-          digits=3,
-          include.fstatistic = TRUE)
-
-
-### Using normal HEDRES as suggested by author
-
-screenreg(list(lm_fulldata, lm_ld_10per2, lm_mi_10per2,  lm_ri_10per2, lm_multim_10per2), 
-          custom.header= list("Full model"=1,"Deletion"=2, "Mean"=3, "Regression"=4, "Multiple"=5), 
-           custom.model.names = c("Model 0", "Model 1", "Model 2", "Model 3", "Model 5"),
-          custom.coef.names = c("Intercept", "Gender", "Home education resources", "Math anxiety", "Reading achievement", "Home education resources"),
-          digits=3,
-          include.fstatistic = TRUE)
-
-
-```
-
-
 
 
 
@@ -541,25 +532,20 @@ screenreg(list(lm_fulldata, lm_ld_10per2, lm_mi_10per2,  lm_ri_10per2, lm_multim
 ```{r}
 #compile results 
 
-x= pool(multim_est_5per) #pooling estimates from the 5 imputed models 
-#pool.r.squared(x, adjusted = FALSE)[1]
-lm_ld_10per2, lm_mi_10per2,  lm_ri_10per2,
 
-imputed = data.frame(full_data = summary(lm_fulldata)$r.squared, 
-                    deletion = summary(lm_ld_5per)$r.squared, 
-                    mean = summary(lm_mi_5per)$r.squared,
-                    reg = summary(lm_ri_5per)$r.squared,
-                    mi =pool.r.squared(x, adjusted = FALSE)[1])
+##5% missing data
+screenreg(list(lm_fulldata, lm_ld_5per, lm_mi_5per,  lm_ri_5per, out1), 
+          custom.header= list("Full model"=1,"Deletion"=2, "Mean"=3, "Regression"=4, "Multiple (MI)"=5), 
+          column.spacing = 5,
+          include.fstatistic = TRUE)
 
+##5% missing data
+screenreg(list(lm_fulldata, lm_ld_10per, lm_mi_10per,  lm_ri_10per, out2), 
+          custom.header= list("Full model"=1,"Deletion"=2, "Mean"=3, "Regression"=4, "Multiple (MI)"=5), 
+          column.spacing = 5,
+          include.fstatistic = TRUE)
 
-original = data.frame(full_data = 0.849, 
-                    deletion = 0.848, 
-                    mean = 0.801,
-                    reg = 0.849,
-                    mi =0.849)
-df=t(rbind(imputed=imputed, original=original))
-df
-  
+summary(lm_ld_5per)$r.squared
 
 
 ```
@@ -567,12 +553,7 @@ df
 
 ###Exploratory analyses
 
-Any follow-up analyses desired (not required). 
-
-```{r}
-
-```
-
+Any follow-up analyses desired (not required).  
 
 ## Discussion
 
