@@ -1,8 +1,9 @@
-  ---
-title: "Replication of `empirical sample 1' by Cheema (2014, Journal of Modern Applied Statistical Methods)"
-author: "Radhika Kapoor (rkap786@stanford.edu)"
-date: "`r format(Sys.time(), '%B %d, %Y')`"
-output:
+---
+  
+  title: "Replication of `empirical sample 1' by Cheema (2014, Journal of Modern Applied Statistical Methods)"
+  author: "Radhika Kapoor (rkap786@stanford.edu)"
+  date: "`r format(Sys.time(), '%B %d, %Y')`"
+  output:
   html_document:
     toc: yes
     toc_depth: 3
@@ -14,81 +15,33 @@ output:
 
 ## Cheema 2014
 
-****************************************************************
-## Project progress
-
-### Status of the project
-
-I have completed the following parts of the project:
-
-1. Imported the data into R
-
-2. Prepared data for analysis: this included keeping required variables, dropping outliers/missing variables and standardizing variables. This was done to correspond to the analysis described in the paper
-
-3. Randomly dropped 5% and 10% of the dependent variable for the analysis
-
-4. Tried 2 of the 5 imputation methods for the 5% sample
-
-
-I have to the following left to do:
-
-1. Complete the 3 remaining imputation methods (regression imputation, EM imputation, multiple imputation)
-2. Merge the results from the regression models in one table
-3. Compare the results against Cheema (2014)
-
-### Question for teaching team
-The feedback I got for my midterm presentation was to decide what would constitute replication. Replication in this case could be:
-
-(1) Comparison of beta coefficients - I can compare these by standardizing them 
-(2) Comparison of R-squared: *I am not sure of how to do this, would appreciate feedback*
-
-
-### Issues I've run into so far
-The regression results don't match the results in the paper fully. Even though I have the exact same number of observations, the following variables don't fully match:
-
-1. As anticipated, the mean math and reading achievement doesn't fully match the mean achievement variables I have calculated. This doesn't seem that different though, going by the results
-
-2. The regression results for one indepdendent variable (home education resources) doesn't match the results in the paper. I've double-checked that I've picked the right variable, dropped the outlier (999) and normalized it as done in the paper. At this point, I am not sure why this variable is behaving differently than in the paper
-
-
-I would appreciate feedback on:
-
-1. Whether my coding so far is following Tidyverse, and if not, where to improve it
-
-2. Whether my coding could have been simpler e.g. I am not sure if I wrote really long code for something that could have been done more simply
-
-3. Whether my coding is easy to read and follow
-
-****************************************************************
-
 ## Introduction
 
-Cheema (2014) evaluates different treatment methods for missing data in surveys by comparing their effect on the accuracy of estimation. The paper conducts the analysis on: (1) Simulated dataset (n=10,000 cases) (2) Empirican sample 1: US portion of PISA 2003 (n=456 cases) (3) Empirical sample 2: Population and Housing portion of US Census (2000). The paper looks at the effect of the different methods if sample size is small, medium or large, and if 5% and 10% of data is missing.
+Cheema (2014) evaluates different treatment methods for missing data in surveys by comparing their effect on the accuracy of estimation. The paper conducts the analysis on: (1) Simulated dataset (n=10,000 cases) (2) Empirical sample 1: US portion of PISA 2003 (n=456 cases) (3) Empirical sample 2: Population and Housing portion of US Census (2000). The paper looks at the effect of the different methods if sample size is small, medium or large, and if 5% and 10% of data is missing.
 
-In this project, I propose to reproduce Cheema 2014's findings from the US portion of the PISA 2003 dataset (Empirical sample 1) with 5% missing data using five different imputation methods - Listwise deletion, Mean imputation, Regression imputation, EM impuation, and Multiple imputation . These are the results in Table 2. 
+In this project, I propose to reproduce Cheema 2014's findings from the US portion of the PISA 2003 dataset (Empirical sample 1) with 5% and 10% missing data using five different imputation methods - Listwise deletion, Mean imputation, Regression imputation, EM impuation, and Multiple imputation . These are the results in Table 2 and Table 3 of the paper. 
 
+Cheema (2014) found that other than mean imputation, all imputation methods produced parameter estimates and model statistics that were very similar to their full data counterparts. This is the result I will be aiming to reproduce. Further, reproduction would be achieved if the R-squared estimates produced for different methods here are within 5% of Cheema (2014).
 
 
 ### Justification for choice of study
-This paper is highly cited in context of handing missing data, but it hasn't been replicated to my knowledge. This project would also give me an opportunity to work with large-scale assessment datasets like PISA and understand their underlying structure. This paper is relevant to my research interests as I plan to work on large education datasets in the context of international assessments. By replicating the results, I would learn some methods for handling missing data in my future work. 
+This paper is highly cited in context of handing missing data, but it hasn't been replicated to my knowledge. The issue of missing data is highly relevant in education research, especially when datasets are small and a relatively large proportion of variables are missing. This project would also give me an opportunity to work with large-scale assessment datasets like PISA and understand their underlying structure. This paper is relevant to my research interests as I plan to work on large education datasets in the context of international assessments. By replicating the results, I would learn some methods for handling missing data in my future work. 
 
 
-### Anticipated challenges
-
-Do you anticipate running into any challenges when attempting to reproduce these result(s)? If so please, list them here.
+### Challenges and limitations of the reproduction
 
 *1. Student achievement variables used in Cheema (2014)*
 
-Cheema (2014) conducts student level imputations for PISA (2003). The dependent variable is Math achievement, and the reading achievement is one of the explanatory variables. The paper mentions that both the achievement variables vary between 200 and 800.
+Cheema (2014) conducts student level imputations for PISA (2003). The dependent variable is Math achievement, and the reading achievement is one of the explanatory variables. 
 
-However, PISA reports 5 plausible values for Math and Reading for each student, and advises that student level plausible values should not be averaged. It suggests that any estimation should be conducted for each of the plausible values, and the resultant estimates should be averaged. Each of these plausible values have a minimum in the range of 141-189, lower than the minimum reported by Cheema. Given the PISA dataset I have downloaded has the same number of observations as reported by Cheema, it is possible that the paper averaged the 5 plausible values. I will be able to determine this once I do the imputation. 
-
-To address this, I plan to: (1) First, imputation using average plausible values to see if Cheema (2014) can be replicated (2) If results are not replicated, conduct estimation using each plausible value and then take the average
+PISA reports 5 plausible values for Math and Reading for each student, and advises that student level plausible values should not be averaged. It suggests that any estimation should be conducted for each of the plausible values, and the resultant estimates should be averaged. However, the author confirmed that he had averaged the plausible values in the PISA dataset in this paper. I have followed the same approach, but the scores we report would not be the most accurate representation of student ability. 
 
 
-*2. Figuring out how to code the methods used in the paper*
+*2. Methods used for data imputation*
 
-Cheema (2014) first performs imputation for a simulated dataset, and then for PISA. In the simulated dataset, 5% of the dataset is randomly dropped 5 times, so that there is no dependencies. However, the PISA section does not describe the values being dropped 5 times. To address this, I plan to drop 5% of data only once; if this is not sufficient to regenerate the sample, I can drop values 5 times, perform the imputation and run the regression, and then average the results
+The original study used SPSS which offers baked in packages for missing data imputation used in this paper. I reproduced this study in R which does not offer the same baked in models. R does have packages for regression and multiple imputation (I used the package "MICE"), but it is not possible to know how it compares to SPSS. For other models, I wrote the code, and again, it is difficult to know if the methods are identical to those in SPSS. 
+
+I also could not reproduce the code to use the method "Expectation Maximization (EM)". SPSS does not offer too much information about this package, and the consensus of internet blogs seems to be that it's not a rigorous package. EM has an optimzation method is available in R and I tried to use it, but the results were very different from SPSS. This is more likely due to differences in packages and code used, and not due to other data or analysis related issues in reproduction. I hencec chose not to report the results for this method.
 
 
 ### Links
@@ -104,15 +57,23 @@ Link to the original paper [here](https://github.com/psych251/cheema2014/tree/ma
 
 PISA (2003) dataset for the US was downloaded from the NCES website. SPSS macros provided on the NCES were run to make the data ready for analysis, and the relevant variables were retained (student achievement for math and reading, student gender, home education resources and math anxiety). 
 
-For analysis, math achievement was predicted using the other variables using a linear multiple regression equation. 5% of the data was randomly discarded. Each of the 5 imputation methods were applied to each of the reduced datasets, and then the multiple analysis was conducted:Listwise deletion, Mean imputation, Regression imputation, EM impuation, and Multiple imputation. 
+Performance of different imputation methods is compared by: (1) Dropping data completely at random (5% and 10%) (2) Estimate missing values using each imputation method (3) Run a linear multiple regression where math achievement is predicted using the other variables - the regression is run using both the full dataset and the dataset with imputed values for missing data. The imputation methods  applied are : Listwise deletion, Mean imputation, Regression imputation, and Multiple imputation. 
 
 ### Differences from original study
 
-Explicitly describe known differences in the analysis pipeline between the original paper and yours (e.g., computing environment). The goal, of course, is to minimize those differences, but differences may occur. Also, note whether such differences are anticipated to influence your ability to reproduce the original results.
+This study differs from the original in use of R instead of SPSS, which might change the packages used. I am also not sure how the original study generated the missing data. THe study describes the method as:
+
+"Each of these sub-samples was then reduced in size by 1%, 2%, 5%, 10%, and 20% in order to simulate datasets containing missing data. The cases were discarded randomly from each complete sample five times separately in order to make sure that there were no dependencies
+between samples."
+
+I have taken this to mean that 5% and 10% of "math achievement" variable should be marked as NA for the analysis, but the author might have dropped the full rows. However, that was too complicated for me to do in R in a way that was logical.
+
+Further, the variables "home education resources" and "math anxiety" have additional missing values. The author did not mention dropping them from the analysis, so I have retained them. However, it's possible that the author didn't mention dropping these variables, because they behave differently in my estimations.  
 
 ## Results
 
-### Data preparation
+### Libraries and loading data
+I load the libraries needed for analysis and the relevant datasets in this section.
 
 ```{r}
 ## Load Relevant Libraries and Functions
@@ -126,16 +87,16 @@ Explicitly describe known differences in the analysis pipeline between the origi
 
 library(tidyr)
 library(dplyr)
-library(stringr) 
+library(stringr)
 library(ggplot2)
 library(readr)
 library(norm)
 library(knitr)
 
 #install.packages("mice")  #package for regression imputation
-library("mice") 
+library("mice")
 #install.packages("miceadds")
-library(miceadds) 
+library(miceadds)
 
 library(sandwich)
 library(mitools)
@@ -143,43 +104,43 @@ library(texreg)
 
 #install.packages("jtools")
 library(jtools)
-install.packages("huxtable")
+#install.packages("huxtable")
 library(huxtable)
 
-
-#?sandwich
-#install.packages("sandwich")
-#install.packages(mitools)
-#install.packages("texreg")
 
 
 #### Import data
 url <- '/Users/radhika/Documents/Stanford readings/251 Experimental methods/Project/cheema2014/PISA data/Extracted data/PISA 2003 Student Background.csv'
 pisa <-read.csv(url)
 
+```
 
-           
+
+### Data preparation
+
+In this section, I modify the dataset to retain only the variables needed for the analysis. I create the mean achievement scores needed for the analysis. I also confirm that the variables behave as described in the original paper e.g. Reading and math achievement range between 200 and 800. I also clean the data by dropping missing values, again as described in the paper.
+
+```{r}
 # Variables selected are: IDs, gender, math anxiety, household, education resources, plausible values for math and reading
 
 #### Prepare data for analysis - create columns etc.
-####Calculate mean
+####Calculate mean reading and math achievement
 pisa = pisa %>% 
    rowwise() %>% 
   mutate(math_achievement = mean(c(PV1MATH, PV2MATH, PV3MATH, PV4MATH, PV5MATH))) %>%  
   mutate(read_achievement=mean(c(PV1READ, PV2READ, PV3READ, PV4READ, PV5READ)))
   
 
-#### Data exclusion / filtering
+#### Data exclusion / filtering NA values
 pisa = pisa %>% 
   rename(student_gender = ST03Q01, studentID=STIDSTD) %>% 
   select(c("studentID", "SCHOOLID", "student_gender","ANXMAT", "HEDRES", "math_achievement", "read_achievement"))
-         
+        
 
-
-head(pisa)
-nrow(pisa)
-colnames(pisa)
-summary(pisa)
+#head(pisa)
+#nrow(pisa)
+#colnames(pisa)
+#summary(pisa)
 
 #Paper says math and reading scores are normally distributed - plotting to check
 ggplot(pisa, aes(x=math_achievement)) + geom_histogram() 
@@ -203,6 +164,7 @@ pisa_filter=pisa %>%
     filter(student_gender<3,
     !is.na(student_gender))
 
+#Paper standardizes math anxiety and home education resources, so the standardized variables are created
 mean_anxmat <- mean(pisa_filter$ANXMAT, na.rm=T)
 sd_anxmat <- sd(pisa_filter$ANXMAT, na.rm=T)
 mean_hedres <- mean(pisa_filter$HEDRES, na.rm=T)
@@ -213,22 +175,20 @@ pisa_filter=pisa_filter %>%
   mutate(stdANXMAT= (ANXMAT-mean_anxmat)/sd_anxmat) %>%
 mutate(stdHEDRES= (HEDRES-mean_hedres)/sd_hedres)
 
-```
 
+```
 
 
 ### Key analysis
 
-The analyses as specified in the analysis plan.  
 
+#### Reduce sample size for analysis
 
-##Reduce sample size for analysis
-Cheema (2014) describes the process as under:
+Cheema (2014) describes reducing the dataset by 5% and 10% for the analysis. I create the datasets as described in this section. 
 
-Each of these sub-samples was then reduced in size by 1%, 2%, 5%, 10%, and 20% in order to simulate datasets containing missing data. The cases were discarded randomly from each complete sample five times separately in order to make sure that there were no dependencies
-between samples. 
+When I run the regressions from the model described above, the variable "home education resources" produces very different beta estimates than the original (the level of significance and coefficient estimate change). When I wrote to the author, he suggested that I try not standardizing the variable. Hence, a dataset with the original home education resources variable (and not it's standardized version) is also created (with 5% and 10% missing values). 
 
-###Drop 5% and 10% of the PISA data
+#### Drop 5% and 10% of the PISA data
 ```{r}
 set.seed(123)
 pisa_filter <- pisa_filter %>%
@@ -239,7 +199,7 @@ cutoff_5per <-5183 #Cheema (2014) rounded off 95% of 5455 obs as 5182, preservin
 cutoff_10per <-4911 #Cheema (2014) rounded off 90% of 5455 obs as 4910
 
 #pisa_5persample <- sample_frac(pisa_filter, 0.95)
-#the code above didnt work
+######the code above didnt work
 
 pisa_5persample <- pisa_filter %>% 
   tibble::rowid_to_column("new_rowid") %>%
@@ -275,8 +235,25 @@ summary(pisa_10persample_mod)
 ```
 
 
-#Define the missing data models to be used 
-## 0. True model
+#### Define the imputation models to be used 
+
+I define functions for imputation methods here. This is based on my understanding of what these functions do in SPSS, and it reflects how I implemented them in R: 
+
+(0) Regression for full model - This is a linear regression function that returns the results from lm function.
+
+(1) List wise deletion imputation method - The rows with missing values are dropped from the regression and the model is run.
+
+(2) Mean imputation method - missing values are replaced with the mean of the remaining values in the variable column
+
+(3) Regression model imputation method - missing values are estimated using a regression function. The model is estimated rows for which data is available; this model is then used to estimate missing values for the concerned variable. The `mice' package in R offers two options for regression imputation: (1) Stochastic, that estimates a regular regression model (2) Regression imputation, that adds a small, randomly generated error term. While regression imputation is better since it is less deterministic, I used stochastic here since that is what SPSS uses (The author of the original study also recommended using the stochastic method).
+
+(4) EM method - this has not been used, as I could not find a good way to run this method in R. 
+
+(5) Multiple imputation - as the name suggests, this method imputes muliple estimated datasets. The dataset with missing values is copied for a specified number of times, and the missing values are estimated for each copied dataset. The values are slightly different because small errors are introduced in the estimations. The mice package, a chain of regression equations is used to estimate the variables i.e. first, one variable is estimated using other variables. The missing values in the other variables are replaced by the mean. Then the results from the first variable are used in the regression estimation for the second variable to be imputed. This is similar to iterating stochastic regression with the difference that (a) it is run on mutiple, slightly different datasets (b) it is run for multiple iterations till results converge.
+
+The function allows for different estimation methods to be used - we can specify different methods for different variables. I used the method predictive mean matching (pmm), since we are not estimating any categorical variables. The variables with missing values that are estimated are math achievement, home education resources and math anxiety.
+
+##### 0. True model
 
 ```{r}
 
@@ -287,7 +264,7 @@ return(lm_fulldata)
 
 ```
 
-## 1. Imputation method: List wise deletion model
+##### 1. Imputation method: List wise deletion model
 ```{r}
 
 model1_deletion = function(data){
@@ -301,7 +278,7 @@ return(lm_ld)
 
 ```
 
-## 2. Imputation method: Mean imputation
+##### 2. Imputation method: Mean imputation
 ```{r}
 model2_mean_imp = function(data){
 
@@ -325,7 +302,7 @@ return(lm_mi)
 
 ```
 
-## 3. Imputation method: Regression imputation
+##### 3. Imputation method: Regression imputation
 ```{r}
 model3_reg_imp = function(data){
 imp <- mice(data, method = "norm.nob", m = 1) # Impute data, produce 1 result matrix
@@ -341,7 +318,7 @@ return(lm_ri)
 ```
 
 
-## 4. Imputation method: EM imputation
+##### 4. Imputation method: EM imputation
  I couldn't use Expectation Maximization (EM) imputation in R to replicate the method used in SPSS. The code chunk below has the two methods I tried, neither of which look right. The first one produces estimates very different from the original model, and the second one produced missing or "inf" values. There don't seem to be any readily available packages in R that correspond to SPSS, so I decided to not reproduce this method.
  
 ```{r}
@@ -373,12 +350,13 @@ return(lm_ri)
 
 ```
  
-## 5. Imputation method: Multiple imputation
+##### 5. Imputation method: Multiple imputation
 
 ```{r}
 model5_multiple_imp = function(data){
-  
-  imp <- mice(data, m=5, maxit=10, meth='pmm',seed=500, printFlag = F) 
+colnames(pisa_5persample)
+
+  imp <- mice(data, m=5, maxit=10, meth=c('pmm'),seed=500, printFlag = F) 
   #mice is the package for performing multiple imputations
       #m=5: number of multiple imputations i.e. 5 completed datasets will be generated
       #maxit=10: number of iterations run 
@@ -424,7 +402,8 @@ extract.df <- function(tt, cl = NULL) {
 ```
 
 
-#Running the analysis using the functions defined above
+### Running the analysis using the functions defined above
+This section runs the imputation methods for PISA dataset with 5% and 10% missing data. The models are estimated using both standardized home education resources variable, as well as the original variable.
 
 ```{r}
 #These results are similar to the paper results
@@ -444,7 +423,7 @@ lm_ri_5per = model3_reg_imp(pisa_5persample) #regression imputation
 multim_est_5per= model5_multiple_imp(pisa_5persample) #multiple imputation
 lm_multim_5per <- extract.df(multim_est_5per) #extract results
 
-### Using standardized HEDRES as suggested by the author
+### Using HEDRES variable with no standardization, as suggested by the author
 lm_ld_5per2 = model1_deletion(pisa_5persample_mod) #list wise deletion
 lm_mi_5per2 = model2_mean_imp(pisa_5persample_mod) #mean imputation
 lm_ri_5per2 = model3_reg_imp(pisa_5persample_mod) #regression imputation
@@ -464,7 +443,7 @@ lm_ri_10per = model3_reg_imp(pisa_10persample) #regression imputation
 multim_est_10per= model5_multiple_imp(pisa_10persample) #multiple imputation
 lm_multim_10per= extract.df(multim_est_10per) #extract results
 
-### Using standardized HEDRES as suggested by the author
+### Using HEDRES variable with no standardization, as suggested by the author
 lm_ld_10per2 = model1_deletion(pisa_10persample_mod) #list wise deletion
 lm_mi_10per2 = model2_mean_imp(pisa_10persample_mod) #mean imputation
 lm_ri_10per2 = model3_reg_imp(pisa_10persample_mod) #regression imputation
@@ -477,8 +456,14 @@ lm_multim_10per2= extract.df(multim_est_10per2) #extract results
 ```
 
 
-#Compiling the results in tables 
-## 5 % missing data
+### Compiling the results in tables 
+
+This section compiles results from the multiple regressions in tables - one table is made for 5% missing data (corresponding to Table 2 in the paper), and a second table is made for 10% missing data (corresponding to Table 3). This reproduction gave the same result as before: it's better to use any imputation method than mean imputation. Even deletion of missing data rows would be preferred to mean imputation, as mean imputation biases result. 
+
+The results for the home education resources variable do not get reproduced both when we standardize it and when we don't. The next section only discusses the results from the standardized home education resources variable.
+
+
+#### 5 % missing data
 
 ```{r}
 ##5% missing data 
@@ -503,12 +488,10 @@ screenreg(list(lm_fulldata, lm_ld_5per2, lm_mi_5per2,  lm_ri_5per2, lm_multim_5p
 
 
 
-
-
 ```
 
 
-## 10% missing data
+#### 10% missing data
 ```{r}
 
 ##10% missing data
@@ -534,30 +517,38 @@ screenreg(list(lm_fulldata, lm_ld_10per2, lm_mi_10per2,  lm_ri_10per2, lm_multim
 
 
 
+## Comparison of reproduction against the original paper
+
+This section compares the R-squared estimates from the reproduction with the results from Cheema (2014).
 
 
-*Side-by-side graph with original graph is ideal here*
+### Compile results - 5% missing data
+
 
 ```{r}
-#compile results 
-
+#compile results for 5% missing data
+##Compile R-squared
 x= pool(multim_est_5per) #pooling estimates from the 5 imputed models 
 #pool.r.squared(x, adjusted = FALSE)[1]
-lm_ld_10per2, lm_mi_10per2,  lm_ri_10per2,
-
-imputed = data.frame(full_data = summary(lm_fulldata)$r.squared, 
-                    deletion = summary(lm_ld_5per)$r.squared, 
-                    mean = summary(lm_mi_5per)$r.squared,
-                    reg = summary(lm_ri_5per)$r.squared,
-                    mi =pool.r.squared(x, adjusted = FALSE)[1])
 
 
-original = data.frame(full_data = 0.849, 
-                    deletion = 0.848, 
-                    mean = 0.801,
-                    reg = 0.849,
-                    mi =0.849)
-df=t(rbind(imputed=imputed, original=original))
+imputed_r = data.frame(fullData = summary(lm_fulldata)$r.squared, 
+                    listDeletion = summary(lm_ld_5per)$r.squared, 
+                    meanImp = summary(lm_mi_5per)$r.squared,
+                    regressionImp = summary(lm_ri_5per)$r.squared,
+                    multipleImp =pool.r.squared(x, adjusted = FALSE)[1])
+
+
+original_r = data.frame(fullData = 0.849, 
+                    listDeletion = 0.848, 
+                    meanImp = 0.801,
+                    regressionImp = 0.849,
+                    multipleImp =0.849)
+
+df=as.data.frame(t(rbind(imputed_r=imputed_r, original_r=original_r))) %>%
+  tibble::rownames_to_column(var="method") %>%
+  mutate(diff_r=(imputed_r-original_r)/original_r*100,
+         diff_r=round(diff_r,2))
 df
   
 
@@ -565,9 +556,39 @@ df
 ```
 
 
+### Compile results - 10% missing data
+```{r}
+x= pool(multim_est_10per) #pooling estimates from the 5 imputed models 
+#pool.r.squared(x, adjusted = FALSE)[1]
+
+
+
+imputed2 = data.frame(fullData = summary(lm_fulldata)$r.squared, 
+                    listDeletion = summary(lm_ld_10per)$r.squared, 
+                    meanImp = summary(lm_mi_10per)$r.squared,
+                    regressionImp = summary(lm_ri_10per)$r.squared,
+                    multipleImp =pool.r.squared(x, adjusted = FALSE)[1])
+
+
+original2 = data.frame(fullData = 0.849, 
+                    listDeletion = 0.850, 
+                    meanImp = 0.773,
+                    regressionImp = 0.849,
+                    multipleImp =0.849)
+
+df2=as.data.frame(t(rbind(imputed_r=imputed2, original_r=original2))) %>%
+  tibble::rownames_to_column(var="method") %>%
+  mutate(diff_r=(imputed_r-original_r)/original_r*100,
+         diff_r=round(diff_r,2),
+         imputed_r=round(imputed_r,3))
+
+df2
+
+```
+
 ###Exploratory analyses
 
-Any follow-up analyses desired (not required). 
+I didn't conduct any exploratory analyses.
 
 ```{r}
 
@@ -578,8 +599,22 @@ Any follow-up analyses desired (not required).
 
 ### Summary of Reproduction Attempt
 
-Open the discussion section with a paragraph summarizing the primary result from the key analysis and assess whether you successfully reproduced it, partially reproduced it, or failed to reproduce it.  
+The criteria for success of the reproduction attempt had been defined as:
+
+*Criteria 1: Other than mean imputation, all imputation methods produced parameter estimates and model statistics that were very similar to their full data counterparts*: This is true for the parameter R-squared in the 5% missing data reproduction. The beta coefficients are also in the same direction and retain the significance, except for home education resources.
+
+
+*Criteria 2: R-squared estimates produced for different methods here are within 5% of Cheema (2014)*: This criteria was achieved for all methods, for both 5% and 10% missing data. As the tables above show, the difference between reproduction and the original results is less than 5% for all imputation methods, for both 5% and 10% missing data.
+
 
 ### Commentary
 
-Add open-ended commentary (if any) reflecting (a) insights from follow-up exploratory analysis of the dataset, (b) assessment of the meaning of the successful or unsuccessful reproducibility attempt - e.g., for a failure to reproduce the original findings, are the differences between original and present analyses ones that definitely, plausibly, or are unlikely to have been moderators of the result, and (c) discussion of any objections or challenges raised by the current and original authors about the reproducibility attempt (if you contacted them).  None of these need to be long.
+It would have been ideal for me to be able to reproduce the exact results from the original paper, since I had access to the same dataset. I could reproduce the study pretty closely, however, I believe the estimates were slightly different due to: 
+
+*(1) Differences in R and SPSS packages*
+
+*(2) Differences in previous study's and my approaches to handling and dropping data:* this was both due to the blackbox nature of pre-written packages (in both softwares), and also due to smaller assumptions made in running the regressions. Even though the author responded to me, we didn't have sufficient information to exactly reproduce the results. This could be because the author wrote the paper 8 years ago, or because I missed asking him about some detail. e.g. as I was writing this report, I realized I could have dropped 5% and 10% of PISA data in a different way. In this report, I dropped values from only one variable (math achievement), but it was also possible to drop entire rows. Both methods are used in data validation papers in education research, and the original paper does not mention which approach was used.
+
+The difference made by using a different software, and the assumptions in running the packages, was bigger than I had anticipated. This was something we had discussed in class as well, and it emphasizes the importance of replication and open research frameworks for me.
+
+
